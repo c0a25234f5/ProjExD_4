@@ -356,10 +356,10 @@ def main():
                 else:
                     beams.add(Beam(bird, 0))
                 # 【追加機能4：無敵発動条件（右Shiftかつスコア100より大）】
-                if event.key == pg.K_RSHIFT and score.value > 100:
-                    bird.state = "hyper"
-                    bird.hyper_life = 500
-                    score.value -= 100  # 消費スコア100
+            if event.type == pg.KEYDOWN and event.key == pg.K_RSHIFT and score.value > 100:
+                bird.state = "hyper"
+                bird.hyper_life = 500
+                score.value -= 100  # 消費スコア100
                 # ------------------------------------------------------
             if event.type == pg.KEYDOWN and event.key == pg.K_e:
                 if score.value > 20:
@@ -399,10 +399,8 @@ def main():
         # ビームと衝突した爆弾リスト
         for bomb in pg.sprite.groupcollide(bombs, beams, True, True).keys():
             exps.add(Explosion(bomb, 50))  # 爆発エフェクト
-            score.value += 1  # 1点アップ
-        for bomb in pg.sprite.groupcollide(bombs, beams, True, True).keys():
-            exps.add(Explosion(bomb, 50))
-            score.value += 1
+            score.value += 100  # 1点アップ
+        
 
         # 【追加機能4：こうかとんと爆弾の衝突判定を拡張】-----------
         for bomb in pg.sprite.spritecollide(bird, bombs, True):
