@@ -354,7 +354,7 @@ def main():
                     for i in NeoBeam(bird, 5).gen_beams():
                         beams.add(Beam(bird, i))
                 else:
-                    beams.add(Beam(bird))
+                    beams.add(Beam(bird, 0))
                 # 【追加機能4：無敵発動条件（右Shiftかつスコア100より大）】
                 if event.key == pg.K_RSHIFT and score.value > 100:
                     bird.state = "hyper"
