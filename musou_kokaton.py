@@ -399,7 +399,7 @@ def main():
         # ビームと衝突した爆弾リスト
         for bomb in pg.sprite.groupcollide(bombs, beams, True, True).keys():
             exps.add(Explosion(bomb, 50))  # 爆発エフェクト
-            score.value += 100  # 1点アップ
+            score.value += 1  # 1点アップ
         
 
         # 【追加機能4：こうかとんと爆弾の衝突判定を拡張】-----------
