@@ -406,32 +406,19 @@ def main():
 
         # 【追加機能4：こうかとんと爆弾の衝突判定を拡張】-----------
         for bomb in pg.sprite.spritecollide(bird, bombs, True):
+            if bomb.state == "inactive":  # 無効化された爆弾はスルー
+                continue
+
             if bird.state == "hyper":
                 # 無敵状態なら死なずに爆弾を爆発させ、スコアを1アップ
                 exps.add(Explosion(bomb, 50))
                 score.value += 1
-            else:
-                # 通常状態ならゲームオーバー
-                bird.change_img(8, screen)
-                score.update(screen)
-                pg.display.update()
-                time.sleep(2)
-                return
-        # ------------------------------------------------------
-        #  防御壁と爆弾の衝突処理（追加）
-
-        for bomb in pg.sprite.groupcollide(bombs, shields, True, False).keys():
-            exps.add(Explosion(bomb, 50))
-            score.value += 1
-
-        # こうかとんと衝突した爆弾リスト
-        for bomb in pg.sprite.spritecollide(bird, bombs, True):
-            if bomb.state == "inactive":  # 無効化された爆弾はスルー
                 continue
-            bird.change_img(8, screen)
-        for bomb in pg.sprite.spritecollide(bird, bombs, True):
+
+                # 通常状態ならゲームオーバー
             bird.change_img(8, screen)
             life.value -= 1 #残機を1減らす
+
             if life.value <= 0:
                 score.update(screen)
                 life.update(screen)
@@ -439,6 +426,13 @@ def main():
                 pg.display.update()
                 time.sleep(2)
                 return
+            
+        # ------------------------------------------------------
+        #  防御壁と爆弾の衝突処理（追加）
+
+        for bomb in pg.sprite.groupcollide(bombs, shields, True, False).keys():
+            exps.add(Explosion(bomb, 50))
+            score.value += 1
 
         gravs.update(exps, emys, bombs, gravs) #追加機能２：重力場
         gravs.draw(screen) #追加機能２：重力場
