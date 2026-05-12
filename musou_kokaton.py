@@ -240,6 +240,31 @@ class Score:
     def update(self, screen: pg.Surface):
         self.image = self.font.render(f"Score: {self.value}", 0, self.color)
         screen.blit(self.image, self.rect)
+        
+
+#追加機能２：重力場
+class Gravity(pg.sprite.Sprite):
+    """
+    重力場に関するクラス
+    スコア200消費
+    """
+    def __init__(self,life:int):
+        super().__init__()
+        self.image = pg.Surface((WIDTH,HEIGHT))
+        pg.draw.rect(self.image,((0,0,0)),pg.Rect(0,0,WIDTH, HEIGHT))
+        self.image.set_alpha(200)
+        self.rect = self.image.get_rect()
+        self.rect.center = [WIDTH/2,HEIGHT/2]
+        self.life = life
+        
+    def update(self, exps, emys, bombs, gravs):
+        for emy in pg.sprite.groupcollide(emys, gravs, True, False).keys():  # ビームと衝突した敵機リスト
+            exps.add(Explosion(emy, 100))
+        for bomb in pg.sprite.groupcollide(bombs, gravs, True, False).keys():  # ビームと衝突した爆弾リスト
+            exps.add(Explosion(bomb, 50)) 
+        self.life -= 1
+        if self.life < 0:
+            self.kill()
 
 
 def main():
@@ -253,6 +278,7 @@ def main():
     beams = pg.sprite.Group()
     exps = pg.sprite.Group()
     emys = pg.sprite.Group()
+    gravs = pg.sprite.Group() #追加機能２：重力場
 
     tmr = 0
     clock = pg.time.Clock()
@@ -263,6 +289,10 @@ def main():
                 return 0
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 beams.add(Beam(bird))
+            #追加機能2：重力場
+            if event.type == pg.KEYDOWN and event.key == pg.K_RETURN and score.value >= 200:
+                gravs.add(Gravity(400))
+                score.value -= 200 # スコア200消費
         screen.blit(bg_img, [0, 0])
 
         if tmr%200 == 0:  # 200フレームに1回，敵機を出現させる
@@ -289,6 +319,8 @@ def main():
             time.sleep(2)
             return
 
+        gravs.update(exps, emys, bombs, gravs) #追加機能２：重力場
+        gravs.draw(screen) #追加機能２：重力場
         bird.update(key_lst, screen)
         beams.update()
         beams.draw(screen)
