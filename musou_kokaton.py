@@ -53,6 +53,10 @@ class Bird(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = xy
         self.speed = 10
+        # 【追加機能4：無敵状態用変数】---------------------------
+        self.state = "normal"      # 通常状態 or 無敵状態("hyper")
+        self.hyper_life = 0        # 無敵時間の残りフレーム数
+        # ------------------------------------------------------
 
     def change_img(self, num: int, screen: pg.Surface):
         """
@@ -78,6 +82,13 @@ class Bird(pg.sprite.Sprite):
         if not (sum_mv[0] == 0 and sum_mv[1] == 0):
             self.dire = tuple(sum_mv)
             self.image = self.imgs[self.dire]
+        # 【追加機能4：無敵状態の画像変換と時間管理】-------------
+        if self.state == "hyper":
+            self.image = pg.transform.laplacian(self.image) # ラプラシアン変換適用
+            self.hyper_life -= 1
+            if self.hyper_life < 0:
+                self.state = "normal"  # 500フレーム経過で元に戻る
+        # ------------------------------------------------------
         screen.blit(self.image, self.rect)
 
 
@@ -321,8 +332,15 @@ def main():
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return 0
+           
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 beams.add(Beam(bird))
+                # 【追加機能4：無敵発動条件（右Shiftかつスコア100より大）】
+                if event.key == pg.K_RSHIFT and score.value > 100:
+                    bird.state = "hyper"
+                    bird.hyper_life = 500
+                    score.value -= 100  # 消費スコア100
+                # ------------------------------------------------------
             if event.type == pg.KEYDOWN and event.key == pg.K_e:
                 if score.value > 20:
                     emps.add(EMP(emys, bombs))
@@ -366,6 +384,20 @@ def main():
             exps.add(Explosion(bomb, 50))
             score.value += 1
 
+        # 【追加機能4：こうかとんと爆弾の衝突判定を拡張】-----------
+        for bomb in pg.sprite.spritecollide(bird, bombs, True):
+            if bird.state == "hyper":
+                # 無敵状態なら死なずに爆弾を爆発させ、スコアを1アップ
+                exps.add(Explosion(bomb, 50))
+                score.value += 1
+            else:
+                # 通常状態ならゲームオーバー
+                bird.change_img(8, screen)
+                score.update(screen)
+                pg.display.update()
+                time.sleep(2)
+                return
+        # ------------------------------------------------------
         #  防御壁と爆弾の衝突処理（追加）
 
         for bomb in pg.sprite.groupcollide(bombs, shields, True, False).keys():
